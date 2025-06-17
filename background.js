@@ -18,11 +18,9 @@ async function updateRules() {
         // Get the currently active rules to prepare for an update.
         const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
         const existingRuleIds = existingRules.map(rule => rule.id);
-
         // Create a new set of rules based on the stored redirects.
         const newRules = redirects.map((redirect, index) => {
             // The API requires a unique ID for each rule. We'll use the array index + 1.
-            // For a more complex extension, a UUID stored with the redirect object would be more robust.
             const ruleId = index + 1;
             return {
                 id: ruleId,
@@ -32,11 +30,12 @@ async function updateRules() {
                     redirect: { url: redirect.to } // The URL to redirect to.
                 },
                 condition: {
-                    // This filter will match the specified domain on any path.
-                    // e.g., "facebook.com" becomes "*://*.facebook.com/*"
-                    urlFilter: `*://*.${redirect.from}/*`, 
-                    // We only want to redirect the main page, not images, scripts, etc.
-                    resourceTypes: ['main_frame'] 
+                    // **FIXED**: Using `requestDomains` is more robust.
+                    // It matches the domain itself (e.g., "x.com") and all its subdomains
+                    // (e.g., "www.x.com", "mobile.x.com") automatically.
+                    requestDomains: [redirect.from],
+                    // We only want to redirect top-level page loads.
+                    resourceTypes: ['main_frame']
                 }
             };
         });
@@ -48,7 +47,7 @@ async function updateRules() {
             addRules: newRules              // Add all the currently configured rules
         });
         
-        console.log("Redirect rules updated successfully.", newRules);
+        console.log("Redirect rules updated successfully with new logic.", newRules);
 
     } catch (error) {
         // Log any errors for debugging.
@@ -71,4 +70,3 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
         updateRules();
     }
 });
-

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "URL Redirector",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Redirect from one URL to another based on a custom list.",
   "permissions": [
     "storage",
@@ -27,4 +27,3 @@
     "128": "images/icon128.png"
   }
 }
-
